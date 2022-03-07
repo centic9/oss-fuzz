@@ -15,3 +15,5 @@ infra/base-images/base-builder/indexer/fuzzing_engine.a
 
 # Chronos
 ccaches/
+
+out/
