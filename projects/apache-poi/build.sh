@@ -116,6 +116,7 @@ for fuzzer in $(find ${SRC} -name '*Fuzzer.java'); do
 
 this_dir=\$(dirname \"\$0\")
 LD_LIBRARY_PATH=\"\$JVM_LD_LIBRARY_PATH\":\$this_dir \
+nice -n 19 \
 \$this_dir/jazzer_driver --agent_path=\$this_dir/jazzer_agent_deploy.jar \
 --cp=${RUNTIME_CLASSPATH} \
 --instrumentation_includes=org.apache.poi.**:org.apache.xmlbeans.** \
