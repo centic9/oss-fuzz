@@ -331,11 +331,16 @@ def check_license(paths):
         extension not in _CHECK_LICENSE_EXTENSIONS):
       continue
 
+    #print('Check file %s.' % str(path))
+
     with open(path) as file_handle:
-      if _LICENSE_STRING not in file_handle.read():
+      contents = file_handle.read()
+      if _LICENSE_STRING not in contents:
         print('Missing license header in file %s.' % str(path))
+        #print('File: %s' % contents)
         success = False
 
+  #print('Had successs: %s' % success)
   return success
 
 
@@ -372,7 +377,7 @@ def yapf(paths, validate=True):
     return True
 
   validate_argument = '-d' if validate else '-i'
-  command = ['yapf', validate_argument, '-p']
+  command = ['yapf3', validate_argument, '-p']
   command.extend(paths)
 
   returncode = subprocess.run(command, check=False).returncode
