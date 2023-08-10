@@ -385,7 +385,8 @@ def get_parser():  # pylint: disable=too-many-statements,too-many-locals
                                help='name of the project or path (external)')
   coverage_parser.add_argument('extra_args',
                                help='additional arguments to '
-                               'pass to llvm-cov utility.',
+                               'pass to the llvm-cov (C/C++) or '
+                               'jacoco-cli (JVM) utility.',
                                nargs='*')
   _add_external_project_args(coverage_parser)
   _add_architecture_args(coverage_parser)

@@ -5,6 +5,8 @@ fuzzing_engines:
   - libfuzzer
 sanitizers:
   - address
+# https://www.jacoco.org/jacoco/trunk/doc/agent.html
+coverage_extra_args: includes=org.apache.poi.*:org.apache.xmlbeans.*
 vendor_ccs:
   - "wagner@code-intelligence.com"
   - "yakdan@code-intelligence.com"

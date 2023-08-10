@@ -54,6 +54,8 @@ COVERAGE_TARGET_FILE="$FUZZER_STATS_DIR/coverage_targets.txt"
 # Use path mapping, as $SRC directory from the builder is copied into $OUT/$SRC.
 PATH_EQUIVALENCE_ARGS="-path-equivalence=/,$OUT"
 
+echo Having COVERAGE_EXTRA_ARGS: ${COVERAGE_EXTRA_ARGS}
+
 # It's important to use $COVERAGE_EXTRA_ARGS as the last argument, because it
 # can contain paths to source files / directories which are positional args.
 LLVM_COV_COMMON_ARGS="$PATH_EQUIVALENCE_ARGS \
@@ -315,14 +317,16 @@ function run_java_fuzz_target {
   rm -rf $corpus_dummy && mkdir -p $corpus_dummy
 
   # Use 100s timeout instead of 25s as code coverage builds can be very slow.
-  local jacoco_args="destfile=$exec_file,classdumpdir=$class_dump_dir,excludes=com.code_intelligence.jazzer.*\\:com.sun.tools.attach.VirtualMachine"
+  # Append COVERAGE_EXTRA_ARGS, but make sure to escape any colon as otherwise it has special meaning
+  local jacoco_args="destfile=$exec_file,classdumpdir=$class_dump_dir,excludes=com.code_intelligence.jazzer.*\\:com.sun.tools.attach.VirtualMachine,${COVERAGE_EXTRA_ARGS/:/\\:}"
   local args="-merge=1 -timeout=100 --nohooks \
-      --additional_jvm_args=-javaagent\\:/opt/jacoco-agent.jar=$jacoco_args \
+      --additional_jvm_args=-javaagent\\:/opt/jacoco-agent.jar=${jacoco_args} \
       $corpus_dummy $corpus_real"
 
+  echo Measuring coverage via command: timeout $TIMEOUT $OUT/$target $args
   timeout $TIMEOUT $OUT/$target $args &> $LOGS_DIR/$target.log
   if (( $? != 0 )); then
-    echo "Error occured while running $target:"
+    echo "Error occurred while running $target:"
     cat $LOGS_DIR/$target.log
   fi
 
@@ -336,12 +340,18 @@ function run_java_fuzz_target {
   # Source files are not needed for the summary.
   local xml_report="$DUMPS_DIR/${target}.xml"
   local summary_file="$FUZZER_STATS_DIR/$target.json"
+
+  echo Creating coverage report via java -jar /opt/jacoco-cli.jar report $exec_file \
+      --xml $xml_report \
+      --classfiles $class_dump_dir
   java -jar /opt/jacoco-cli.jar report $exec_file \
       --xml $xml_report \
       --classfiles $class_dump_dir
 
   # Write llvm-cov summary file.
   jacoco_report_converter.py $xml_report $summary_file
+
+  echo Finished processing Java coverage data
 }
 
 function run_javascript_fuzz_target {
@@ -547,6 +557,8 @@ elif [[ $FUZZING_LANGUAGE == "jvm" ]]; then
 
   # Merge .exec files from the individual targets.
   jacoco_merged_exec=$DUMPS_DIR/jacoco.merged.exec
+  echo Merging JaCoCo .exec files with command: java -jar /opt/jacoco-cli.jar merge $DUMPS_DIR/*.exec \
+                                                      --destfile $jacoco_merged_exec
   java -jar /opt/jacoco-cli.jar merge $DUMPS_DIR/*.exec \
       --destfile $jacoco_merged_exec
 
@@ -579,8 +591,15 @@ elif [[ $FUZZING_LANGUAGE == "jvm" ]]; then
     sourcefiles_args+=(--sourcefiles "$source_dir")
   done
 
+  #rm -rf $classes_dir/assets $classes_dir/com $classes_dir/jaz $classes_dir/org/etsi $classes_dir/org/openxmlformats $classes_dir/org/w3 $classes_dir/org/apache/commons $classes_dir/org/apache/logging
+
   # Generate HTML and XML reports.
   xml_report=$REPORT_PLATFORM_DIR/index.xml
+  echo Generating JaCoCo HTML report via command: java -jar /opt/jacoco-cli.jar report $jacoco_merged_exec \
+                                                        --html $REPORT_PLATFORM_DIR \
+                                                        --xml $xml_report \
+                                                        --classfiles $classes_dir \
+                                                        "${sourcefiles_args[@]}"
   java -jar /opt/jacoco-cli.jar report $jacoco_merged_exec \
       --html $REPORT_PLATFORM_DIR \
       --xml $xml_report \
