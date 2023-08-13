@@ -8,6 +8,7 @@ sanitizers:
 - address
 auto_ccs:
   - "security@commons.apache.org"
+  - "dominik.stadler@gmail.com"
 vendor_ccs:
   - "wagner@code-intelligence.com"
   - "yakdan@code-intelligence.com"
