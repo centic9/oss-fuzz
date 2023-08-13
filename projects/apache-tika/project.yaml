@@ -1,0 +1,10 @@
+homepage: "https://tika.apache.org/"
+language: jvm
+main_repo: "https://gitbox.apache.org/repos/asf/tika.git"
+primary_contact: "centic@apache.org"
+fuzzing_engines:
+  - libfuzzer
+sanitizers:
+  - address
+auto_ccs:
+  - "dominik.stadler@gmail.com"
