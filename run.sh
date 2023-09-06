@@ -47,6 +47,11 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+PYTHON=python3
+if [ "${OSTYPE}" = "CYGWIN" -o "${OSTYPE}" = "msys" ]; then
+  PYTHON=python3.9
+fi
+
 while [ $# -gt 0 ]
 do
   key="$1"
@@ -105,7 +110,7 @@ fi
 if [ ${INTROSPECT} -eq 1 ]; then
   echo
   echo "Running introspector"
-  nice -n 19 python3 infra/helper.py introspector ${PROJECT}
+  nice -n 19 ${PYTHON} infra/helper.py introspector ${PROJECT}
 
   exit $?
 fi
@@ -114,23 +119,23 @@ if [ ${BASE_RUNNER} -eq 1 ]; then
   echo
   echo "Building image for base_runner locally"
   # docker build -t gcr.io/oss-fuzz-base/base-runner infra/base-images/base-runner
-  nice -n 19 python3 infra/helper.py build_image base-runner --no-pull --cache
+  nice -n 19 ${PYTHON} infra/helper.py build_image base-runner --no-pull --cache
 fi
 
 if [ ${REIMAGE} -eq 1 ]; then
   echo
   echo "Building image"
-  nice -n 19 python3 infra/helper.py build_image ${PROJECT}
+  nice -n 19 ${PYTHON} infra/helper.py build_image ${PROJECT}
 fi
 
 if [ ${REBUILD} -eq 1 ]; then
   echo
   echo "Building fuzzers"
-  nice -n 19 python3 infra/helper.py build_fuzzers ${PROJECT}
+  nice -n 19 ${PYTHON} infra/helper.py build_fuzzers ${PROJECT}
 
   echo
   echo "Checking resulting image"
-  nice -n 19 python3 infra/helper.py check_build ${PROJECT}
+  nice -n 19 ${PYTHON} infra/helper.py check_build ${PROJECT}
 fi
 
 if [ ${REPRODUCE} -eq 1 ]; then
@@ -144,14 +149,14 @@ fi
 
 echo
 echo Running presubmit
-nice -n 19 python3 infra/presubmit.py
+nice -n 19 ${PYTHON} infra/presubmit.py
 
 if [ ${FUZZING} -eq 1 ]; then
   for i in `find projects/${PROJECT} -name *Fuzzer.java`; do
     echo
     echo Running Fuzzer `basename $i .java`
     mkdir -p build/corpus/${PROJECT}/`basename $i .java`/
-    nice -n 19 python3 infra/helper.py run_fuzzer \
+    nice -n 19 ${PYTHON} infra/helper.py run_fuzzer \
       --corpus-dir build/corpus/${PROJECT}/`basename $i .java`/ \
       ${PROJECT} \
       `basename $i .java` \
@@ -173,5 +178,5 @@ if [ ${COVERAGE} -eq 1 ]; then
     mkdir -p build/out/${PROJECT}/src
     cp -a projects/${PROJECT}/*.java build/out/${PROJECT}/src/
   fi
-  nice -n 19 python3 infra/helper.py coverage --no-corpus-download ${PROJECT} ${COVERAGE_EXTRA_ARGS}
+  nice -n 19 ${PYTHON} infra/helper.py coverage --no-corpus-download ${PROJECT} ${COVERAGE_EXTRA_ARGS}
 fi
