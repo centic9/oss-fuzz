@@ -113,7 +113,7 @@ for fuzzer in $(find ${SRC} -name '*Fuzzer.java'); do
 	echo "#!/bin/sh
 # LLVMFuzzerTestOneInput Magic String required for infra/base-images/base-runner/test_all.py. DO NOT REMOVE
 
-
+# -Dorg.apache.poi.ss.ignoreMissingFontSystem=true
 this_dir=\$(dirname \"\$0\")
 LD_LIBRARY_PATH=\"\$JVM_LD_LIBRARY_PATH\":\$this_dir \
 nice -n 19 \
