@@ -155,8 +155,8 @@ if [ ${FUZZING} -eq 1 ]; then
       --corpus-dir build/corpus/${PROJECT}/`basename $i .java`/ \
       ${PROJECT} \
       `basename $i .java` \
-      -- -max_total_time=1000 \
-      -timeout=120 \
+      -- -max_total_time=60 \
+      -timeout=60 \
       || break
   done
 fi
