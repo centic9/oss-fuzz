@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.poi.POIHSSFFuzzer;
+import org.apache.poi.POIFileHandlerFuzzer;
 
 public class TestApp {
 
@@ -17,13 +17,13 @@ public class TestApp {
 			stream.filter(Files::isRegularFile)
 					.parallel()
 					.forEach(path -> {
-				System.out.println("Handling " + path);
-				count.incrementAndGet();
+				System.out.println(count.incrementAndGet() + " - Handling " + path);
+
 				try {
 					byte[] byteArray = IOUtils.toByteArray(new FileInputStream(path.toFile()));
-					POIHSSFFuzzer.fuzzerTestOneInput(byteArray);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
+					POIFileHandlerFuzzer.fuzzerTestOneInput(byteArray);
+				} catch (Exception e) {
+					throw new RuntimeException("While handling file: " + path, e);
 				}
 			});
 
