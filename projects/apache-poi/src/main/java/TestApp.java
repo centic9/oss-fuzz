@@ -22,11 +22,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.AbstractConfiguration;
 import org.apache.poi.POIFileHandlerFuzzer;
 
 public class TestApp {
 
 	public static void main(String[] args) throws IOException {
+		// remove all appenders to silence log4j output
+		final var ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
+		final var configuration = (AbstractConfiguration) ctx.getConfiguration();
+		final var allAppenders = configuration.getAppenders();
+		for (final var appenderName : allAppenders.keySet()) {
+			configuration.removeAppender(appenderName);
+		}
+
+		POIFileHandlerFuzzer.fuzzerInitialize();
+
 		try (Stream<Path> stream = Files.walk(Path.of("/opt/jazzer/oss-fuzz/build/corpus/apache-poi"))) {
 			AtomicInteger count = new AtomicInteger();
 
