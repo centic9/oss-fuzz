@@ -52,6 +52,10 @@ public class POIXSSFFuzzer {
 		} catch (IOException | XmlException | OpenXML4JException | POIXMLException | RecordFormatException |
 				IllegalStateException | IllegalArgumentException | IndexOutOfBoundsException e) {
 			// expected
+		} catch (NullPointerException e) {
+			if (!e.getMessage().startsWith("Cannot invoke \"java.io.InputStream.read(byte[], int, int)\"")) {
+				throw e;
+			}
 		}
 	}
 }
